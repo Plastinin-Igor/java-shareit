@@ -64,7 +64,7 @@ public class UserInMemoryStorage implements UserStorage {
 
     private void checkingForEmail(String email, Long userId) {
         for (User user : users.values()) {
-            if (user.getEmail().equals(email) && user.getId() != userId) {
+            if (!userId.equals(user.getId()) && user.getEmail().equals(email)) {
                 log.error("Email {} is already in use.", email);
                 throw new ValidationException("Email " + email + " is already in use.");
             }
