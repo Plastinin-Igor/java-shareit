@@ -6,7 +6,6 @@ import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequestMapper;
 import ru.practicum.shareit.user.UserMapper;
-import ru.practicum.shareit.user.model.User;
 
 public final class ItemMapper {
     public static ItemDto toItemDto(Item item) {

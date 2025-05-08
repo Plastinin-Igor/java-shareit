@@ -8,6 +8,8 @@ import lombok.Data;
 public class UserCreateDto {
     @NotBlank(message = "Username must be specified.")
     private String name;
+
+    @NotBlank(message = "The field must contain an email address.")
     @Email(message = "The field must contain an email address.")
     private String email;
 }
