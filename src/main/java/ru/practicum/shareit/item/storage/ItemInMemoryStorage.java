@@ -1,22 +1,22 @@
 package ru.practicum.shareit.item.storage;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
-import lombok.extern.log4j.Log4j;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
-@Log4j
+@Slf4j
 public class ItemInMemoryStorage implements ItemStorage {
 
     private final Map<Long, Item> items;
+    private final Map<Long, Long> itemsUsers;
 
     public ItemInMemoryStorage() {
         items = new HashMap<>();
+        itemsUsers = new HashMap<>();
     }
 
     private long getNextId() {
@@ -32,31 +32,59 @@ public class ItemInMemoryStorage implements ItemStorage {
     public Item addItem(Item item) {
         item.setId(getNextId());
         items.put(item.getId(), item);
+        itemsUsers.put(item.getId(), item.getOwner().getId());
         return item;
     }
 
     @Override
     public Item updateItem(Item item) {
-        return null;
+        Item itemOld = items.get(item.getId());
+        itemOld.setName(item.getName());
+        itemOld.setDescription(item.getDescription());
+        itemOld.setAvailable(item.getAvailable());
+        return item;
     }
 
     @Override
-    public boolean deleteItem(long itemId) {
-        return false;
+    public boolean deleteItem(Long itemId) {
+        return (items.remove(itemId) != null);
     }
 
     @Override
-    public Item getItemById(long itemId) {
-        return null;
+    public Item getItemById(Long itemId, Long userId) {
+        if (!items.containsKey(itemId) && (itemsUsers.get(userId).equals(itemId))) {
+            log.error("Item with id: {} not found for user with id: {}.", itemId, userId);
+            throw new NotFoundException("Item with id: " + itemId + " not found for user with id: " + userId);
+        }
+        return items.get(itemId);
     }
 
     @Override
-    public Collection<Item> getItems() {
-        return List.of();
+    public Collection<Item> getItems(Long userId) {
+        ArrayList<Item> itemsList = new ArrayList<>();
+        for (Map.Entry<Long, Long> entry : itemsUsers.entrySet()) {
+            Long item = entry.getKey();
+            Long user = entry.getValue();
+            if (userId.equals(user)) {
+                itemsList.add(items.get(item));
+            }
+        }
+        return itemsList;
     }
 
     @Override
     public Collection<Item> findItems(String searchText) {
-        return List.of();
+        ArrayList<Item> itemsList = new ArrayList<>();
+        if (!searchText.isBlank()) {
+            for (Item item : items.values()) {
+                if (item.getName().toLowerCase().contains(searchText.toLowerCase())
+                        || item.getDescription().toLowerCase().contains(searchText.toLowerCase())) {
+                    if (item.getAvailable().equals(true)) {
+                        itemsList.add(item);
+                    }
+                }
+            }
+        }
+        return itemsList;
     }
 }

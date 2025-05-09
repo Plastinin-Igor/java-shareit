@@ -43,7 +43,6 @@ public class UserInMemoryStorage implements UserStorage {
         User oldUser = users.get(user.getId());
         oldUser.setName(user.getName());
         oldUser.setEmail(user.getEmail());
-
         return user;
     }
 
