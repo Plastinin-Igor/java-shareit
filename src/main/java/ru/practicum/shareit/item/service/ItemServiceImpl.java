@@ -27,7 +27,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto addItem(ItemCreateDto itemCreateDto, Long userId) {
         User user = userStorage.getUserById(userId);
-        UserExists(userId);
+        userExists(userId);
         Item item = ItemMapper.toItemFromCreateDto(itemCreateDto);
         item.setOwner(user);
         item = itemStorage.addItem(item);
@@ -37,7 +37,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(ItemUpdateDto itemUpdateDto, Long itemId, Long userId) {
         itemExists(itemId, userId);
-        UserExists(userId);
+        userExists(userId);
         Item oldItem = itemStorage.getItemById(itemId, userId);
         Item newItem = ItemMapper.toItemFromUpdateDto(oldItem, itemUpdateDto);
         return ItemMapper.toItemDto(itemStorage.updateItem(newItem));
@@ -76,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    public void UserExists(Long userId) {
+    public void userExists(Long userId) {
         User user = userStorage.getUserById(userId);
         if (user == null) {
             log.error("User with id: {} not found.", userId);
