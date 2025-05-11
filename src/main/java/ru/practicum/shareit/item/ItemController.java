@@ -64,7 +64,6 @@ public class ItemController {
     public Collection<ItemDto> getItems(@RequestHeader(name = "X-Sharer-User-Id", required = false, defaultValue = "-1")
                                         @PositiveOrZero Long userId) {
         log.info("Received a request to get a items with user id: {}", userId);
-        log.info("У пользователя {} найдено записей {}", userId, itemService.getItems(userId).size());
         return itemService.getItems(userId);
     }
 
