@@ -26,14 +26,13 @@ public class UserService {
     }
 
     public UserDto updateUser(UserUpdateDto userUpdateDto, Long userId) {
-        userExists(userId);
-        User oldUser = userStorage.getUserById(userId);
+        User oldUser = getUser(userId);
         User newUser = UserMapper.toUserFromUpdateDto(oldUser, userUpdateDto);
         return UserMapper.toUserDto(userStorage.updateUser(newUser));
     }
 
     public boolean deleteUser(long userId) {
-        userExists(userId);
+        getUser(userId);
         return userStorage.deleteUser(userId);
     }
 
@@ -45,15 +44,16 @@ public class UserService {
     }
 
     public UserDto getUserById(long userId) {
-        userExists(userId);
-        return UserMapper.toUserDto(userStorage.getUserById(userId));
+        return UserMapper.toUserDto(getUser(userId));
     }
 
-    public void userExists(long userId) {
-        if (userStorage.getUserById(userId) == null) {
+    private User getUser(long userId) {
+        User user = userStorage.getUserById(userId);
+        if (user == null) {
             log.error("User with id: {} not found.", userId);
             throw new NotFoundException("User with id: " + userId + " not found.");
         }
+        return user;
     }
 
 }

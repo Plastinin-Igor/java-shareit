@@ -38,7 +38,7 @@ public class ItemServiceImpl implements ItemService {
         getUser(userId);
         Item oldItem = getItem(itemId, userId);
         Item newItem = ItemMapper.toItemFromUpdateDto(oldItem, itemUpdateDto);
-        return ItemMapper.toItemDto(itemStorage.updateItem(newItem));
+        return ItemMapper.toItemDto(itemStorage.updateItem(newItem, userId));
     }
 
     @Override

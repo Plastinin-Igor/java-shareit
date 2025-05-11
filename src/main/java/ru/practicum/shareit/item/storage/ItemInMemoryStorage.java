@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.*;
@@ -35,8 +34,12 @@ public class ItemInMemoryStorage implements ItemStorage {
     }
 
     @Override
-    public Item updateItem(Item item) {
+    public Item updateItem(Item item, Long userId) {
         Item itemOld = items.get(item.getId());
+        if (!userId.equals(itemOld.getOwner().getId())) {
+            log.error("Only the owner can make changes.");
+            throw new IllegalArgumentException("Only the owner can make changes.");
+        }
         itemOld.setName(item.getName());
         itemOld.setDescription(item.getDescription());
         itemOld.setAvailable(item.getAvailable());
@@ -50,12 +53,7 @@ public class ItemInMemoryStorage implements ItemStorage {
 
     @Override
     public Item getItemById(Long itemId, Long userId) {
-        Item item = items.get(itemId);
-        if (!item.getOwner().getId().equals(userId)) {
-            log.error("Item with id: {} not found for user with id: {}.", itemId, userId);
-            throw new NotFoundException("Item with id: " + itemId + " not found for user with id: " + userId);
-        }
-        return item;
+        return items.get(itemId);
     }
 
     @Override

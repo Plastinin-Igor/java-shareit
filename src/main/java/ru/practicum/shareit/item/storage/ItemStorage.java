@@ -8,7 +8,7 @@ public interface ItemStorage {
 
     Item addItem(Item item);
 
-    Item updateItem(Item item);
+    Item updateItem(Item item, Long userId);
 
     boolean deleteItem(Long itemId);
 
