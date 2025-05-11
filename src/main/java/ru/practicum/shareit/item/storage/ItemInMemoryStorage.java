@@ -6,17 +6,16 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @Slf4j
 public class ItemInMemoryStorage implements ItemStorage {
 
     private final Map<Long, Item> items;
-    private final Map<Long, Long> itemsUsers;
 
     public ItemInMemoryStorage() {
         items = new HashMap<>();
-        itemsUsers = new HashMap<>();
     }
 
     private long getNextId() {
@@ -32,7 +31,6 @@ public class ItemInMemoryStorage implements ItemStorage {
     public Item addItem(Item item) {
         item.setId(getNextId());
         items.put(item.getId(), item);
-        itemsUsers.put(item.getId(), item.getOwner().getId());
         return item;
     }
 
@@ -52,39 +50,32 @@ public class ItemInMemoryStorage implements ItemStorage {
 
     @Override
     public Item getItemById(Long itemId, Long userId) {
-        if (!items.containsKey(itemId) && (itemsUsers.get(userId).equals(itemId))) {
+        Item item = items.get(itemId);
+        if (!item.getOwner().getId().equals(userId)) {
             log.error("Item with id: {} not found for user with id: {}.", itemId, userId);
             throw new NotFoundException("Item with id: " + itemId + " not found for user with id: " + userId);
         }
-        return items.get(itemId);
+        return item;
     }
 
     @Override
     public Collection<Item> getItems(Long userId) {
-        ArrayList<Item> itemsList = new ArrayList<>();
-        for (Map.Entry<Long, Long> entry : itemsUsers.entrySet()) {
-            Long item = entry.getKey();
-            Long user = entry.getValue();
-            if (userId.equals(user)) {
-                itemsList.add(items.get(item));
-            }
-        }
-        return itemsList;
+        return items.values().stream()
+                .filter(i -> i.getOwner().getId().equals(userId))
+                .collect(Collectors.toList());
     }
 
     @Override
     public Collection<Item> findItems(String searchText) {
-        ArrayList<Item> itemsList = new ArrayList<>();
         if (!searchText.isBlank()) {
-            for (Item item : items.values()) {
-                if (item.getName().toLowerCase().contains(searchText.toLowerCase())
-                        || item.getDescription().toLowerCase().contains(searchText.toLowerCase())) {
-                    if (item.getAvailable().equals(true)) {
-                        itemsList.add(item);
-                    }
-                }
-            }
-        }
-        return itemsList;
+            String textLower = searchText.toLowerCase();
+            return items.values().stream()
+                    .filter(i -> (i.getName().toLowerCase().contains(textLower) ||
+                            i.getDescription().toLowerCase().contains(textLower)) &&
+                            i.getAvailable())
+                    .collect(Collectors.toList());
+        } else
+            return Collections.emptyList();
     }
+
 }

@@ -26,8 +26,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto addItem(ItemCreateDto itemCreateDto, Long userId) {
-        User user = userStorage.getUserById(userId);
-        userExists(userId);
+        User user = getUser(userId);
         Item item = ItemMapper.toItemFromCreateDto(itemCreateDto);
         item.setOwner(user);
         item = itemStorage.addItem(item);
@@ -36,23 +35,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(ItemUpdateDto itemUpdateDto, Long itemId, Long userId) {
-        itemExists(itemId, userId);
-        userExists(userId);
-        Item oldItem = itemStorage.getItemById(itemId, userId);
+        getUser(userId);
+        Item oldItem = getItem(itemId, userId);
         Item newItem = ItemMapper.toItemFromUpdateDto(oldItem, itemUpdateDto);
         return ItemMapper.toItemDto(itemStorage.updateItem(newItem));
     }
 
     @Override
     public boolean deleteItem(Long itemId, Long userId) {
-        itemExists(itemId, userId);
+        getItem(itemId, userId);
         return itemStorage.deleteItem(itemId);
     }
 
     @Override
     public ItemDto getItemById(Long itemId, Long userId) {
-        itemExists(itemId, userId);
-        return ItemMapper.toItemDto(itemStorage.getItemById(itemId, userId));
+        return ItemMapper.toItemDto(getItem(itemId, userId));
     }
 
     @Override
@@ -69,18 +66,21 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
-    public void itemExists(long itemId, long userId) {
-        if (itemStorage.getItemById(itemId, userId) == null) {
+    private Item getItem(long itemId, long userId) {
+        Item item = itemStorage.getItemById(itemId, userId);
+        if (item == null) {
             log.error("Item with id: {} not found.", itemId);
             throw new NotFoundException("Item with id: " + itemId + " not found.");
         }
+        return item;
     }
 
-    public void userExists(Long userId) {
+    private User getUser(Long userId) {
         User user = userStorage.getUserById(userId);
         if (user == null) {
             log.error("User with id: {} not found.", userId);
             throw new NotFoundException("User with id: " + userId + " not found.");
         }
+        return user;
     }
 }
