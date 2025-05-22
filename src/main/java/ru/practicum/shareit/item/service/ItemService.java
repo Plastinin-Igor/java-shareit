@@ -12,7 +12,7 @@ public interface ItemService {
 
     ItemDto updateItem(ItemUpdateDto item, Long itemId, Long userId);
 
-    boolean deleteItem(Long itemId, Long userId);
+    void deleteItem(Long itemId, Long userId);
 
     ItemDto getItemById(Long itemId, Long userId);
 
