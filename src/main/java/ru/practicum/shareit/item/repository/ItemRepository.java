@@ -13,7 +13,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
     @Query("select it " +
            "  from Item as it " +
-           "where (lower(it.name) like concat('%', :searchText, '%') or lower(it.description) like concat('%', :searchText, '%'))  " +
+           "where (lower(it.name) like concat('%', :searchText, '%') " +
+           "or lower(it.description) like concat('%', :searchText, '%'))  " +
            "   and it.available = true")
     List<Item> findByText(@Param("searchText") String searchText);
 

@@ -1,18 +1,29 @@
 package ru.practicum.shareit.booking.dto;
 
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import lombok.Data;
 import ru.practicum.shareit.booking.model.BookingStatus;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import java.time.LocalDateTime;
 
 @Data
 public class BookingCreateDto {
+    @FutureOrPresent
     private LocalDateTime start;
+
+    @Future
     private LocalDateTime end;
-    private ItemDto item;
-    private UserDto booker;
+
+    private Long itemId;
+
+    private Long bookerId;
+
     private BookingStatus status;
 
+    @AssertTrue
+    boolean isStartBeforeEnd() {
+        return start.isBefore(end);
+    }
 }
