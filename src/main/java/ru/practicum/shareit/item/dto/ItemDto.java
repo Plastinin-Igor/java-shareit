@@ -4,6 +4,8 @@ import lombok.Data;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
+import java.util.List;
+
 @Data
 public class ItemDto {
     private Long id;
@@ -12,4 +14,5 @@ public class ItemDto {
     private Boolean available;
     private UserDto owner;
     private ItemRequestDto request;
+    private List<CommentDto> comments;
 }
