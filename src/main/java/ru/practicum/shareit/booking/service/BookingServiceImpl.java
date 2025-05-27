@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
@@ -18,9 +19,10 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
+
 
 @Service
 @Slf4j
@@ -36,6 +38,10 @@ public class BookingServiceImpl implements BookingService {
     public BookingDto addBooking(BookingCreateDto bookingCreateDto, Long userId) {
         User user = getUser(userId);
         Item item = getItem(bookingCreateDto.getItemId());
+        if (!item.getAvailable()) {
+            log.error("The item with id: {} is not available for booking", item.getId());
+            throw new IllegalArgumentException("The item with id: " + item.getId() + " is not available for booking");
+        }
         Booking booking = BookingMapper.toBookingFromCreateDto(bookingCreateDto);
         booking.setItem(item);
         booking.setBooker(user);
@@ -68,9 +74,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public void approveBooking(Long bookingId, Long userId, Boolean approved) {
+    public BookingDto approveBooking(Long bookingId, Long userId, Boolean approved) {
         Booking booking = getBooking(bookingId);
-        if (!userId.equals(booking.getBooker().getId())) {
+        if (!userId.equals(booking.getItem().getOwner().getId())) {
             log.error("Only the owner can make approve booking.");
             throw new IllegalArgumentException("Only the owner can make approve booking.");
         }
@@ -79,7 +85,7 @@ public class BookingServiceImpl implements BookingService {
         } else {
             booking.setStatus(BookingStatus.REJECTED);
         }
-        bookingRepository.save(booking);
+        return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
     @Override
@@ -89,15 +95,83 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getBookingByUser(Long userId, BookingState state) {
-        return bookingRepository.findByBooker_Id(userId)
-                .stream()
-                .map(BookingMapper::toBookingDto)
-                .collect(Collectors.toList());
+        User user = getUser(userId);
+
+        return switch (state) {
+            case ALL -> bookingRepository.findByBooker(user, Sort.by(Sort.Direction.DESC, "start"))
+                    .stream()
+                    .map(BookingMapper::toBookingDto)
+                    .collect(Collectors.toList());
+            case CURRENT -> {
+                LocalDateTime now = LocalDateTime.now();
+                yield bookingRepository.findByBookerAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(user,
+                                now, now).stream()
+                        .map(BookingMapper::toBookingDto)
+                        .collect(Collectors.toList());
+            }
+            case PAST -> bookingRepository.findByBookerAndEndBeforeOrderByStartDesc(user, LocalDateTime.now())
+                    .stream()
+                    .map(BookingMapper::toBookingDto)
+                    .collect(Collectors.toList());
+            case FUTURE -> bookingRepository.findByBookerAndStartAfterOrderByStartAsc(user, LocalDateTime.now())
+                    .stream()
+                    .map(BookingMapper::toBookingDto)
+                    .collect(Collectors.toList());
+            case WAITING -> bookingRepository.findByBookerAndStatusEqualsOrderByStartDesc(user, BookingStatus.WAITING)
+                    .stream()
+                    .map(BookingMapper::toBookingDto)
+                    .collect(Collectors.toList());
+            case REJECTED -> bookingRepository.findByBookerAndStatusEqualsOrderByStartDesc(user, BookingStatus.REJECTED)
+                    .stream()
+                    .map(BookingMapper::toBookingDto)
+                    .collect(Collectors.toList());
+            default -> {
+                log.error("Invalid booking state: {}.", state);
+                throw new IllegalArgumentException("Invalid booking state: " + state + ".");
+            }
+        };
     }
 
     @Override
     public Collection<BookingDto> getBookingItemByUser(Long userId, BookingState state) {
-        return List.of();
+        User user = getUser(userId);
+
+        return switch (state) {
+            case ALL -> bookingRepository.findByItem_Owner(user, Sort.by(Sort.Direction.DESC, "start"))
+                    .stream()
+                    .map(BookingMapper::toBookingDto)
+                    .collect(Collectors.toList());
+            case CURRENT -> {
+                LocalDateTime now = LocalDateTime.now();
+                yield bookingRepository.findByItem_OwnerAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(
+                                user, now, now)
+                        .stream()
+                        .map(BookingMapper::toBookingDto)
+                        .collect(Collectors.toList());
+            }
+            case PAST -> bookingRepository.findByItem_OwnerAndEndBeforeOrderByStartDesc(user, LocalDateTime.now())
+                    .stream()
+                    .map(BookingMapper::toBookingDto)
+                    .collect(Collectors.toList());
+            case FUTURE -> bookingRepository.findByItem_OwnerAndStartAfterOrderByStartAsc(user, LocalDateTime.now())
+                    .stream()
+                    .map(BookingMapper::toBookingDto)
+                    .collect(Collectors.toList());
+            case WAITING ->
+                    bookingRepository.findByItem_OwnerAndStatusEqualsOrderByStartDesc(user, BookingStatus.WAITING)
+                            .stream()
+                            .map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+            case REJECTED ->
+                    bookingRepository.findByItem_OwnerAndStatusEqualsOrderByStartDesc(user, BookingStatus.REJECTED)
+                            .stream()
+                            .map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+            default -> {
+                log.error("Invalid booking state: {} for owner with id: {}.", state, userId);
+                throw new IllegalArgumentException("Invalid booking state: " + state + ".");
+            }
+        };
     }
 
     private User getUser(long userId) {

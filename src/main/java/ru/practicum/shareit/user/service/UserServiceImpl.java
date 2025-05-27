@@ -1,10 +1,10 @@
 package ru.practicum.shareit.user.service;
 
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.ConstraintException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserCreateDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -75,7 +75,7 @@ public class UserServiceImpl implements UserService {
         for (User user : users) {
             if (!userId.equals(user.getId()) && user.getEmail().equals(email)) {
                 log.error("Email {} is already in use.", email);
-                throw new ValidationException("Email " + email + " is already in use.");
+                throw new ConstraintException("Email " + email + " is already in use.");
             }
         }
     }
