@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingCreateDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.dto.BookingUpdateDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -188,6 +189,13 @@ public class BookingServiceImpl implements BookingService {
     private Booking getBooking(long bookingId) {
         return bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking with id " + bookingId + " not found."));
+    }
+
+    public Collection<BookingShortDto> getBookingByUserAndItems(Long userId, Long itemId) {
+        return bookingRepository.findByBooker_IdAndItem_IdOrderByStartDesc(userId, itemId)
+                .stream()
+                .map(BookingMapper::toBookingShortDto)
+                .collect(Collectors.toList());
     }
 
 }

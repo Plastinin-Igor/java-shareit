@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.Collection;
@@ -61,8 +62,8 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getItems(@RequestHeader(name = "X-Sharer-User-Id", required = false, defaultValue = "-1")
-                                        @PositiveOrZero Long userId) {
+    public Collection<ItemWithBookingDto> getItems(@RequestHeader(name = "X-Sharer-User-Id", required = false, defaultValue = "-1")
+                                                   @PositiveOrZero Long userId) {
         log.info("Received a request to get a items with user id: {}", userId);
         return itemService.getItems(userId);
     }
