@@ -10,13 +10,15 @@ import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.comment.dto.CommentCreateDto;
+import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.item.mapper.CommentMapper;
+import ru.practicum.shareit.comment.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -73,6 +75,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getItemById(Long itemId, Long userId) {
         ItemDto itemDto = ItemMapper.toItemDto(getItem(itemId));
+
         List<CommentDto> commentDtoList;
         commentDtoList = commentRepository.findByItem_IdOrderByCreatedDesc(itemId).stream()
                 .map(CommentMapper::toCommentDto)
@@ -80,17 +83,18 @@ public class ItemServiceImpl implements ItemService {
         if (!commentDtoList.isEmpty()) {
             itemDto.setComments(commentDtoList);
         }
+
         return itemDto;
     }
 
     @Override
-    public Collection<ItemWithBookingDto> getItems(Long userId) {
+    public Collection<ItemDto> getItems(Long userId) {
         User user = getUser(userId);
 
         // Все вещи пользователя
-        List<ItemWithBookingDto> items;
+        List<ItemDto> items;
         items = itemRepository.findByOwner_Id(userId).stream()
-                .map(ItemMapper::toItemWithDateDto)
+                .map(ItemMapper::toItemDto)
                 .toList();
 
         // Все бронирования вещей пользователя
@@ -111,9 +115,9 @@ public class ItemServiceImpl implements ItemService {
         Optional<BookingShortDto> bookingLastShortDto;
         Optional<BookingShortDto> bookingNextShortDto;
         List<CommentDto> commentsItem;
-        List<ItemWithBookingDto> results = new ArrayList<>();
+        List<ItemDto> results = new ArrayList<>();
 
-        for (ItemWithBookingDto item : items) {
+        for (ItemDto item : items) {
             bookingLastShortDto = bookings.stream()
                     .filter(b -> Objects.equals(b.getItemId(), item.getId())) //Условие на вещь
                     .filter(b -> !b.getStart().isAfter(LocalDateTime.now())) //Прошедшие бронирования
@@ -125,7 +129,7 @@ public class ItemServiceImpl implements ItemService {
                     .min(Comparator.comparing(BookingShortDto::getStart));
 
             commentsItem = comments.stream()
-                    .filter(i -> Objects.equals(i.getItem().getId(), item.getId()))
+                    .filter(i -> Objects.equals(i.getItem(), item.getId()))
                     .toList();
 
 

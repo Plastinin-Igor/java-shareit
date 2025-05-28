@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.mapper;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
-import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequestMapper;
 import ru.practicum.shareit.user.mapper.UserMapper;
@@ -52,12 +51,4 @@ public final class ItemMapper {
         return item;
     }
 
-    public static ItemWithBookingDto toItemWithDateDto(Item item) {
-        ItemWithBookingDto itemWithBookingDto = new ItemWithBookingDto();
-        itemWithBookingDto.setId(item.getId());
-        itemWithBookingDto.setName(item.getName());
-        itemWithBookingDto.setDescription(item.getDescription());
-        itemWithBookingDto.setAvailable(item.getAvailable());
-        return itemWithBookingDto;
-    }
 }

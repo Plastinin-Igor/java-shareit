@@ -1,8 +1,9 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.comment.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
 @Data

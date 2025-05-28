@@ -1,5 +1,7 @@
 package ru.practicum.shareit.item.service;
 
+import ru.practicum.shareit.comment.dto.CommentCreateDto;
+import ru.practicum.shareit.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.*;
 
 import java.util.Collection;
@@ -14,7 +16,7 @@ public interface ItemService {
 
     ItemDto getItemById(Long itemId, Long userId);
 
-    Collection<ItemWithBookingDto> getItems(Long userId);
+    Collection<ItemDto> getItems(Long userId);
 
     Collection<ItemDto> findItems(String searchText, Long userId);
 
