@@ -21,6 +21,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -77,10 +78,18 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingDto approveBooking(Long bookingId, Long userId, Boolean approved) {
         Booking booking = getBooking(bookingId);
+
         if (!userId.equals(booking.getItem().getOwner().getId())) {
             log.error("Only the owner can make approve booking.");
             throw new IllegalArgumentException("Only the owner can make approve booking.");
         }
+        if (!Objects.equals(BookingStatus.WAITING, booking.getStatus())) {
+            log.error("The booking is in the status {}. Approve is available only in the status WAITING.",
+                    booking.getStatus());
+            throw new IllegalArgumentException("The booking is in the status " + booking.getStatus()
+                                               + ". Approve is available only in the status WAITING.");
+        }
+
         if (approved) {
             booking.setStatus(BookingStatus.APPROVED);
         } else {
@@ -90,7 +99,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto getBookingById(Long bookingId) {
+    public BookingDto getBookingById(Long bookingId, Long userId) {
+        Booking booking = getBooking(bookingId);
+
+        if (!(booking.getBooker().getId().equals(userId) || booking.getItem().getOwner().getId().equals(userId))) {
+            log.error("This can only be done by the booking author or the product owner.");
+            throw new IllegalArgumentException("This can only be done by the booking author or the product owner.");
+        }
+
         return BookingMapper.toBookingDto(getBooking(bookingId));
     }
 
