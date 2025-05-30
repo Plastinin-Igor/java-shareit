@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemCreateDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemUpdateDto;
+import ru.practicum.shareit.comment.dto.CommentCreateDto;
+import ru.practicum.shareit.comment.dto.CommentDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.Collection;
@@ -75,5 +75,13 @@ public class ItemController {
         return itemService.findItems(text, userId);
     }
 
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@RequestHeader(name = "X-Sharer-User-Id", required = false, defaultValue = "-1")
+                                 @PositiveOrZero Long userId,
+                                 @PathVariable Long itemId,
+                                 @RequestBody CommentCreateDto commentCreateDto) {
+        log.info("Received a request to add a comment");
+        return itemService.addComment(itemId, userId, commentCreateDto);
+    }
 
 }
