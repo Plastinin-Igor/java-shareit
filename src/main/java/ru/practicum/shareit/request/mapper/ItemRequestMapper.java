@@ -1,5 +1,6 @@
-package ru.practicum.shareit.request;
+package ru.practicum.shareit.request.mapper;
 
+import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.mapper.UserMapper;
@@ -24,5 +25,13 @@ public final class ItemRequestMapper {
         itemRequestDto.setCreated(itemRequest.getCreated());
         return itemRequestDto;
     }
+
+    public static ItemRequest toItemRequestFromCreateDto(ItemRequestCreateDto itemRequestCreateDto) {
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setDescription(itemRequestCreateDto.getDescription());
+
+        return itemRequest;
+    }
+
 
 }

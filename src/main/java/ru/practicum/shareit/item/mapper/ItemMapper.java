@@ -2,9 +2,10 @@ package ru.practicum.shareit.item.mapper;
 
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemShortDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.request.ItemRequestMapper;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.mapper.UserMapper;
 
 public final class ItemMapper {
@@ -15,7 +16,6 @@ public final class ItemMapper {
         itemDto.setDescription(item.getDescription());
         itemDto.setAvailable(item.getAvailable());
         itemDto.setOwner(item.getOwner() != null ? UserMapper.toUserDto(item.getOwner()) : null);
-        itemDto.setRequest(item.getRequest() != null ? ItemRequestMapper.toItemRequestDto(item.getRequest()) : null);
         return itemDto;
     }
 
@@ -26,7 +26,6 @@ public final class ItemMapper {
         item.setDescription(itemDto.getDescription());
         item.setAvailable(itemDto.getAvailable());
         item.setOwner(itemDto.getOwner() != null ? UserMapper.toUser(itemDto.getOwner()) : null);
-        item.setRequest(itemDto.getRequest() != null ? ItemRequestMapper.toItemRequest(itemDto.getRequest()) : null);
         return item;
     }
 
@@ -35,6 +34,14 @@ public final class ItemMapper {
         item.setName(itemCreateDto.getName());
         item.setDescription(itemCreateDto.getDescription());
         item.setAvailable(itemCreateDto.getAvailable());
+
+        if (itemCreateDto.getRequestId() != null) {
+            ItemRequest itemRequest = new ItemRequest();
+            itemRequest.setId(itemCreateDto.getRequestId());
+            item.setRequest(itemRequest);
+        } else {
+            item.setRequest(null);
+        }
 
         return item;
     }
@@ -49,6 +56,14 @@ public final class ItemMapper {
         item.setAvailable(itemUpdateDto.getAvailable());
 
         return item;
+    }
+
+    public static ItemShortDto toItemShortDtoFromItem(Item item) {
+        ItemShortDto itemShortDto = new ItemShortDto();
+        itemShortDto.setId(item.getId());
+        itemShortDto.setName(item.getName());
+        itemShortDto.setOwner(item.getOwner().getId());
+        return itemShortDto;
     }
 
 }
