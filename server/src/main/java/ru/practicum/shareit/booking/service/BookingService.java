@@ -7,6 +7,7 @@ import ru.practicum.shareit.booking.model.BookingState;
 
 import java.util.Collection;
 
+
 public interface BookingService {
 
     BookingDto addBooking(BookingCreateDto booking, Long userId);
