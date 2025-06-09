@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,8 @@ import ru.practicum.shareit.comment.dto.CommentCreateDto;
 import ru.practicum.shareit.item.ItemClient;
 import ru.practicum.shareit.item.dto.ItemCreateDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
+
+import java.util.Collections;
 
 
 @RestController
@@ -68,7 +71,11 @@ public class ItemController {
                                             @PositiveOrZero Long userId,
                                             @RequestParam String text) {
         log.info("Received a request to get a items with text: {}", text);
-        return itemClient.findItems(text, userId);
+        if (text.isBlank()) {
+            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.OK);
+        } else {
+            return itemClient.findItems(text, userId);
+        }
     }
 
     @PostMapping("/{itemId}/comment")

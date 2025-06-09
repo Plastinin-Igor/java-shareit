@@ -20,6 +20,7 @@ import ru.practicum.shareit.comment.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.comment.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -37,11 +38,17 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
 
     @Override
     @Transactional
     public ItemDto addItem(ItemCreateDto itemCreateDto, Long userId) {
+        if (itemCreateDto.getRequestId() != null) {
+            itemRequestRepository.findById(itemCreateDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("ItemRequest with id: " + itemCreateDto.getRequestId()
+                            + " not found."));
+        }
         User user = getUser(userId);
         Item item = ItemMapper.toItemFromCreateDto(itemCreateDto);
         item.setOwner(user);
@@ -146,12 +153,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> findItems(String searchText, Long userId) {
-        if (!searchText.isBlank()) {
-            return itemRepository.findByText(searchText.toLowerCase()).stream()
-                    .map(ItemMapper::toItemDto)
-                    .collect(Collectors.toList());
-        } else
-            return Collections.emptyList();
+        return itemRepository.findByText(searchText.toLowerCase()).stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override
