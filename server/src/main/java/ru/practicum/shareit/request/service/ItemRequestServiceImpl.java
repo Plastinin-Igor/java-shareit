@@ -19,6 +19,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -43,24 +44,28 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public Collection<ItemRequestDto> getListOfYourRequests(Long userId) {
         getUser(userId);
-        // Список своих запросов
+        // Список вещей
+        List<Item> itemList = itemRepository.findAllByRequest_IdNotNull();
+
+        Map<Long, List<ItemShortDto>> itemsByRequestId = itemList.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getRequest().getId(),
+                        Collectors.mapping(ItemMapper::toItemShortDtoFromItem, Collectors.toList())
+                ));
+
+        // Получаем список своих запросов
         List<ItemRequestDto> itemRequestList = itemRequestRepository
                 .getItemRequestByRequestor_IdOrderByCreatedAsc(userId)
                 .stream()
                 .map(ItemRequestMapper::toItemRequestDto)
                 .toList();
 
-        // Список всех вещей, у которых есть запросы
-        List<Item> itemList = itemRepository.findAllByRequest_IdNotNull();
-        List<ItemShortDto> itemShortDto;
-
+        // Устанавливаем вещи в каждый запрос
         for (ItemRequestDto itemRequest : itemRequestList) {
-            itemShortDto = itemList.stream()
-                    .filter(i -> Objects.equals(i.getRequest().getId(), itemRequest.getId()))
-                    .map(ItemMapper::toItemShortDtoFromItem)
-                    .toList();
-            if (!itemShortDto.isEmpty()) {
-                itemRequest.setItems(itemShortDto);
+            Long requestId = itemRequest.getId();
+
+            if (itemsByRequestId.containsKey(requestId)) {
+                itemRequest.setItems(itemsByRequestId.get(requestId));
             }
         }
 
@@ -71,28 +76,32 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public Collection<ItemRequestDto> getListQueriesCreatedByOtherUsers(Long userId) {
         getUser(userId);
+
         // Список запросов, созданных другими пользователями
         List<ItemRequestDto> itemRequestList = itemRequestRepository
                 .findAll()
                 .stream()
-                .filter(i -> !Objects.equals(i.getRequestor().getId(), userId)) // Свои запросы исключаем
+                .filter(i -> !Objects.equals(i.getRequestor().getId(), userId))
                 .map(ItemRequestMapper::toItemRequestDto)
                 .toList();
 
-        // Список всех вещей, у которых есть запросы
+        // Все вещи, у которых есть привязанные запросы
         List<Item> itemList = itemRepository.findAllByRequest_IdNotNull();
-        List<ItemShortDto> itemShortDto;
 
+        // Формируем карту: ключ — request_id, значение — список ItemShortDto
+        Map<Long, List<ItemShortDto>> itemsByRequestId = itemList.stream()
+                .collect(Collectors.groupingBy(
+                        i -> i.getRequest().getId(),
+                        Collectors.mapping(ItemMapper::toItemShortDtoFromItem, Collectors.toList())
+                ));
+
+        // Добавляем вещи в каждый запрос из подготовленной карты
         for (ItemRequestDto itemRequest : itemRequestList) {
-            itemShortDto = itemList.stream()
-                    .filter(i -> Objects.equals(i.getRequest().getId(), itemRequest.getId()))
-                    .map(ItemMapper::toItemShortDtoFromItem)
-                    .toList();
-            if (!itemShortDto.isEmpty()) {
-                itemRequest.setItems(itemShortDto);
+            Long requestId = itemRequest.getId();
+            if (itemsByRequestId.containsKey(requestId)) {
+                itemRequest.setItems(itemsByRequestId.get(requestId));
             }
         }
-
         return itemRequestList;
     }
 
